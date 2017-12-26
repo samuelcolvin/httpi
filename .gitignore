@@ -4,3 +4,4 @@
 /with-rust/**/*.rs.bk
 
 /with-python/env/
+*.py[cod]

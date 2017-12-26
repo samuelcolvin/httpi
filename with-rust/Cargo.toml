@@ -5,6 +5,7 @@ authors = ["Samuel Colvin <s@muelcolvin.com>"]
 
 [dependencies]
 postgres = "0.15"
+rand = "0.3"
 rocket = "0.3.5"
 rocket_codegen = "0.3.5"
 rocket_contrib = "0.3.5"
