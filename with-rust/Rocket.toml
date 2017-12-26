@@ -1,0 +1,6 @@
+[staging]
+address = "localhost"
+port = 8000
+workers = 8
+log = "critical"
+limits = { forms = 32768 }

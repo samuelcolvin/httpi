@@ -1,0 +1,6 @@
+/.idea/
+
+/with-rust/target/
+/with-rust/**/*.rs.bk
+
+/with-python/env/
