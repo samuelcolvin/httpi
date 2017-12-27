@@ -17,10 +17,9 @@ use rand::distributions::{IndependentSample, Range};
 
 const STEPS:i32 = 100;
 
-fn find_pi_sql() -> (f32, f32) {
+fn find_pi_sql() -> f64 {
     let dsn = "postgres://postgres:waffle@localhost:5432";
     let conn = Connection::connect(dsn, TlsMode::None).unwrap();
-    let start = precise_time_s();
     let mut circ = 0;
     for _ in 0..STEPS {
         let v:bool = conn.query("SELECT (random() ^ 2 + random() ^ 2) < 1", &[])
@@ -29,14 +28,10 @@ fn find_pi_sql() -> (f32, f32) {
             circ += 1;
         }
     }
-    let pi:f32 = (circ as f32) / (STEPS as f32) * 4.0;
-    let diff = (precise_time_s() - start) * 1000.0;
-    return (pi, diff as f32)
+    (circ as f64) / (STEPS as f64) * 4.
 }
 
-fn find_pi_fast() -> (f32, f32) {
-    let start = precise_time_s();
-
+fn find_pi_fast() -> f64 {
    let between = Range::new(-1f64, 1.);
    let mut rng = rand::thread_rng();
 
@@ -49,32 +44,25 @@ fn find_pi_fast() -> (f32, f32) {
            circ += 1;
        }
    }
-    let pi:f32 = (circ as f32) / (STEPS as f32) * 4.0;
-    let diff = (precise_time_s() - start) * 1000.0;
-    return (pi, diff as f32)
+    (circ as f64) / (STEPS as f64) * 4.
 }
 
 #[derive(Serialize)]
 struct Result {
-    pi: f32,
-    sql_exec_time: f32,
+    pi: f64,
 }
 
 #[get("/")]
 fn index() -> Json<Result> {
-    let (pi, diff) = find_pi_sql();
     Json(Result {
-        pi: pi,
-        sql_exec_time: diff,
+        pi: find_pi_sql(),
     })
 }
 
 #[get("/fast")]
 fn fast() -> Json<Result> {
-    let (pi, diff) = find_pi_fast();
     Json(Result {
-        pi: pi,
-        sql_exec_time: diff,
+        pi: find_pi_fast(),
     })
 }
 
@@ -86,8 +74,12 @@ fn main() {
 
 // for testing
 //fn main() {
-//    let (pi1, diff1) = find_pi_sql();
-//    println!("SQL    pi={:.4}, time={:.4}", pi1, diff1);
-//    let (pi2, diff2) = find_pi_fast();
-//    println!("memory pi={:.4}, time={:.4}", pi2, diff2);
+//    let mut start = precise_time_s();
+//    let mut pi = find_pi_sql();
+//    let mut diff = (precise_time_s() - start) * 1000.0;
+//    println!("SQL    pi={:.4} ({:.3}ms)", pi, diff);
+//    start = precise_time_s();
+//    pi = find_pi_fast();
+//    diff = (precise_time_s() - start) * 1000.0;
+//    println!("memory pi={:.4} ({:.3}ms)", pi, diff);
 //}
