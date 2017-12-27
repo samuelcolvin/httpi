@@ -87,6 +87,7 @@ fn find_pi_native(steps: i32) -> f64 {
 #[derive(Serialize)]
 struct Result {
     pi: f64,
+    steps: i32,
 }
 
 #[derive(FromForm)]
@@ -98,6 +99,7 @@ struct Setup {
 fn sql(setup: Setup, conn: DbConn) -> Json<Result> {
     Json(Result {
         pi: find_pi_sql(&*conn, setup.steps),
+        steps: setup.steps,
     })
 }
 
@@ -105,6 +107,7 @@ fn sql(setup: Setup, conn: DbConn) -> Json<Result> {
 fn sql_default(conn: DbConn) -> Json<Result> {
     Json(Result {
         pi: find_pi_sql(&*conn, STEPS_DEFAULT),
+        steps: STEPS_DEFAULT,
     })
 }
 
@@ -112,6 +115,7 @@ fn sql_default(conn: DbConn) -> Json<Result> {
 fn native(setup: Setup) -> Json<Result> {
     Json(Result {
         pi: find_pi_native(setup.steps),
+        steps: setup.steps,
     })
 }
 
@@ -119,6 +123,7 @@ fn native(setup: Setup) -> Json<Result> {
 fn native_default() -> Json<Result> {
     Json(Result {
         pi: find_pi_native(STEPS_DEFAULT),
+        steps: STEPS_DEFAULT,
     })
 }
 

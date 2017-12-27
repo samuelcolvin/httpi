@@ -23,7 +23,7 @@ async def sql(request):
         for _ in range(steps):
             v += await stmt.fetchval()
     return Response(
-        text=ujson.dumps({'pi': v / steps * 4}),
+        text=ujson.dumps({'pi': v / steps * 4, 'steps': steps}),
         content_type='application/json'
     )
 
@@ -35,7 +35,7 @@ async def native(request):
         a, b = random(), random()
         v += (a * a + b * b) < 1
     return Response(
-        text=ujson.dumps({'pi': v / steps * 4}),
+        text=ujson.dumps({'pi': v / steps * 4, 'steps': steps}),
         content_type='application/json'
     )
 

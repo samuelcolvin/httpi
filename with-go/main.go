@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-
 	"fmt"
 	"github.com/jackc/pgx"
 	"github.com/labstack/echo"
@@ -18,6 +17,7 @@ var pool *pgx.ConnPool
 
 type Response struct {
 	Pi float32 `json:"pi" xml:"pi"`
+	Steps int `json:"steps" xml:"steps"`
 }
 
 func get_steps(ctx echo.Context) int {
@@ -42,6 +42,7 @@ func native(ctx echo.Context) error {
 	pi := float32(circ) / float32(steps) * 4
 	r := &Response{
 		Pi: pi,
+		Steps: steps,
 	}
 	return ctx.JSON(http.StatusOK, r)
 }
@@ -71,6 +72,7 @@ func sql(ctx echo.Context) error {
 	pi := float32(circ) / float32(steps) * 4
 	r := &Response{
 		Pi: pi,
+		Steps: steps,
 	}
 	return ctx.JSON(http.StatusOK, r)
 }
