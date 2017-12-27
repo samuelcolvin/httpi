@@ -42,7 +42,7 @@ async def native(request):
 
 async def startup(app):
     dsn = os.getenv('DB_DSN')
-    app['pool'] = await asyncpg.create_pool(dsn=dsn)
+    app['pool'] = await asyncpg.create_pool(dsn=dsn, max_size=20)
 
 
 app = Application()

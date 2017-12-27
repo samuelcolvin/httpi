@@ -83,7 +83,7 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	pool_config := pgx.ConnPoolConfig{ConnConfig: config, MaxConnections: 100}
+	pool_config := pgx.ConnPoolConfig{ConnConfig: config, MaxConnections: 20}
 	pool, err = pgx.NewConnPool(pool_config)
 	if err != nil {
 		log.Fatal(err)
