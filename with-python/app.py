@@ -1,12 +1,11 @@
 import os
-from random import SystemRandom
+from random import random
 
 import asyncpg
 import ujson
 from aiohttp.web import Application, Response, run_app
 
 DEFAULT_STEPS = 100
-random = SystemRandom().random
 
 
 def get_steps(request):
@@ -16,7 +15,7 @@ def get_steps(request):
         return DEFAULT_STEPS
 
 
-async def in_sql(request):
+async def sql(request):
     steps = get_steps(request)
     v = 0
     async with request.app['pool'].acquire() as conn:

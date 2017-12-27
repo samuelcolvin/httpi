@@ -127,7 +127,7 @@ fn main() {
     let pool = Pool::builder()
         .max_size(20)
         .build(manager)
-        .expect("db pool");
+        .unwrap();
     rocket::ignite()
         .manage(pool)
         .mount("/", routes![sql, sql_default, native, native_default])
