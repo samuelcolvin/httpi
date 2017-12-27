@@ -7,12 +7,10 @@ extern crate serde_json;
 extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
-extern crate time;
 extern crate rand;
 
 use postgres::{Connection, TlsMode};
 use rocket_contrib::{Json};
-use time::precise_time_s;
 use rand::distributions::{IndependentSample, Range};
 
 const STEPS:i32 = 100;
@@ -73,6 +71,8 @@ fn main() {
 }
 
 // for testing
+//extern crate time;
+//use time::precise_time_s;
 //fn main() {
 //    let mut start = precise_time_s();
 //    let mut pi = find_pi_sql();

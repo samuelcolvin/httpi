@@ -1,10 +1,11 @@
-from random import random
+from random import SystemRandom
 
 import asyncpg
 import ujson
 from aiohttp.web import Application, Response, run_app
 
 STEPS = 100
+random = SystemRandom().random
 
 
 async def sql(request):
