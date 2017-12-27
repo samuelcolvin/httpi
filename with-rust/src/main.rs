@@ -1,4 +1,5 @@
 #![feature(plugin)]
+#![feature(custom_derive)]
 #![plugin(rocket_codegen)]
 
 extern crate rocket;
@@ -19,7 +20,7 @@ use rocket::{Request, State, Outcome};
 use rand::distributions::{IndependentSample, Range};
 use r2d2_postgres::{TlsMode, PostgresConnectionManager};
 
-const STEPS:i32 = 100;
+const STEPS_DEFAULT:i32 = 100;
 
 type Pool = r2d2::Pool<PostgresConnectionManager>;
 static DB_DSN: &'static str = env!("DB_DSN");
@@ -51,31 +52,36 @@ impl Deref for DbConn {
     }
 }
 
-fn find_pi_sql(conn: &Connection) -> f64 {
+fn find_pi_sql(conn: &Connection, steps: i32) -> f64 {
     let mut circ = 0i32;
-    for _ in 0..STEPS {
-        let v:bool = conn.query("SELECT (random() ^ 2 + random() ^ 2) < 1", &[])
-            .unwrap().iter().next().unwrap().get(0);
+    let stmt = conn.prepare("SELECT (random() ^ 2 + random() ^ 2) < 1").unwrap();
+    for _ in 0..steps {
+        let v:bool = stmt.query(&[])
+            .unwrap()
+            .iter()
+            .next()
+            .unwrap()
+            .get(0);
         if v {
             circ += 1;
         }
     }
-    (circ as f64) / (STEPS as f64) * 4.
+    (circ as f64) / (steps as f64) * 4.
 }
 
-fn find_pi_fast() -> f64 {
+fn find_pi_native(steps: i32) -> f64 {
     let between = Range::new(-1f64, 1.);
     let mut rng = rand::thread_rng();
 
     let mut circ = 0i32;
-    for _ in 0..STEPS {
+    for _ in 0..steps {
        let a = between.ind_sample(&mut rng);
        let b = between.ind_sample(&mut rng);
        if a*a + b*b < 1. {
            circ += 1;
        }
    }
-    (circ as f64) / (STEPS as f64) * 4.
+   (circ as f64) / (steps as f64) * 4.
 }
 
 #[derive(Serialize)]
@@ -83,17 +89,36 @@ struct Result {
     pi: f64,
 }
 
-#[get("/")]
-fn index(conn: DbConn) -> Json<Result> {
+#[derive(FromForm)]
+struct Setup {
+    steps: i32
+}
+
+#[get("/sql?<setup>")]
+fn sql(setup: Setup, conn: DbConn) -> Json<Result> {
     Json(Result {
-        pi: find_pi_sql(&*conn),
+        pi: find_pi_sql(&*conn, setup.steps),
     })
 }
 
-#[get("/fast")]
-fn fast() -> Json<Result> {
+#[get("/sql")]
+fn sql_default(conn: DbConn) -> Json<Result> {
     Json(Result {
-        pi: find_pi_fast(),
+        pi: find_pi_sql(&*conn, STEPS_DEFAULT),
+    })
+}
+
+#[get("/native?<setup>")]
+fn native(setup: Setup) -> Json<Result> {
+    Json(Result {
+        pi: find_pi_native(setup.steps),
+    })
+}
+
+#[get("/native")]
+fn native_default() -> Json<Result> {
+    Json(Result {
+        pi: find_pi_native(STEPS_DEFAULT),
     })
 }
 
@@ -105,21 +130,6 @@ fn main() {
         .expect("db pool");
     rocket::ignite()
         .manage(pool)
-        .mount("/", routes![index, fast])
+        .mount("/", routes![sql, sql_default, native, native_default])
         .launch();
 }
-
-//// for testing
-//extern crate time;
-//use time::precise_time_s;
-//fn main() {
-//    let conn = Connection::connect(DB_DSN, postgres::TlsMode::None).unwrap();
-//    let mut start = precise_time_s();
-//    let mut pi = find_pi_sql(&conn);
-//    let mut diff = (precise_time_s() - start) * 1000.0;
-//    println!("SQL    pi={:.4} ({:.3}ms)", pi, diff);
-//    start = precise_time_s();
-//    pi = find_pi_fast();
-//    diff = (precise_time_s() - start) * 1000.0;
-//    println!("memory pi={:.4} ({:.3}ms)", pi, diff);
-//}
